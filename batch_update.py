@@ -54,8 +54,9 @@ def update_batch(ids):
         confirmedUpdate = True
 
         # Execute query
-        cursor.execute(sql)
-        connection.commit()
+        with connection.cursor() as cursorUpd:
+            cursorUpd.execute(sql)
+            connection.commit()
 
         # Optional Sleep
         if args.sleep > 0:
@@ -121,12 +122,16 @@ try:
             print ("   query: " + sql % (minId, args.select_batch_size))
             cursor.execute(sql, (minId, args.select_batch_size))
 
+            # Row count
+            count = cursor.rowcount
+
             # No more rows
-            if cursor.rowcount == 0:
+            if count == 0:
                 print ("* No more rows to update!");
                 sys.exit();
 
             # Loop thru rows
+            print("* Preparing to update %s rows..." % count)
             ids = []
             for result in cursor:
                 # Append ID to batch
