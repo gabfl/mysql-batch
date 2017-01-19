@@ -4,7 +4,7 @@ Updating a large amount of rows in MySQL will create locks that will paralyze ot
 
 This tool will run updated in small batches to prevent table-level and row-level locking (with InnoDB). If a large number of rows has to be updated, it is also possible to limit the number of rows selected at once.
 
-# Requirements
+## Requirements
 
  - Python 3
  - pymysql (`pip3 install pymysql`)
