@@ -2,7 +2,7 @@
 
 # Author: Gabriel Bordeaux (gabfl)
 # Github: https://github.com/gabfl/mysql-batch-update
-# Version: 1.0
+# Version: 1.0.1
 # Compatible with python 3
 
 import pymysql.cursors, sys, argparse, time
@@ -25,18 +25,25 @@ parser.add_argument("-id", "--id", default='id',
                     help="Name of the ID column")
 parser.add_argument("-w", "--where", required = True,
                     help="Select WHERE clause")
-parser.add_argument("-u", "--update", required = True,
+parser.add_argument("-s", "--set",
                     help="Update SET clause")
-parser.add_argument("-sbz", "--select_batch_size", type=int, default = 1000,
+parser.add_argument("-rbz", "--read_batch_size", type=int, default = 1000,
                     help="Select batch size")
-parser.add_argument("-ubz", "--update_batch_size", type=int, default = 50,
-                    help="Update batch size")
-parser.add_argument("-s", "--sleep", type=float, default = 0.00,
-                    help="Sleep after an update")
+parser.add_argument("-wbz", "--write_batch_size", type=int, default = 50,
+                    help="Update/delete batch size")
+parser.add_argument("-S", "--sleep", type=float, default = 0.00,
+                    help="Sleep after each batch")
+parser.add_argument("-a", "--action", default = 'update', choices=['update', 'delete'],
+                    help="Action ('update' or 'delete')")
 args = parser.parse_args()
 
-def update_batch(ids):
-    global confirmedUpdate
+# Make sure we have a SET clause for updates
+if args.action == 'update' and args.set is None:
+    print ("Error: argument -s/--set is required for updates.");
+    sys.exit();
+
+def updateBatch(ids):
+    global confirmedWrite
 
     """Update a batch of rows"""
 
@@ -46,25 +53,54 @@ def update_batch(ids):
 
     # Prepare update
     print('* Updating %i rows...' % len(ids))
-    sql = "UPDATE " + args.table + " SET " + args.update + " WHERE {0} IN (".format(args.id) + ', '.join([str(x) for x in ids]) + ")"
+    sql = "UPDATE " + args.table + " SET " + args.set + " WHERE {0} IN (".format(args.id) + ', '.join([str(x) for x in ids]) + ")"
     print ("   query: " + sql)
 
-    if confirmedUpdate or query_yes_no("* Start updating?"):
-        # Switch confirmedUpdate skip the question for the next update
-        confirmedUpdate = True
+    if confirmedWrite or query_yes_no("* Start updating?"):
+        # Switch confirmedWrite skip the question for the next update
+        confirmedWrite = True
 
         # Execute query
-        with connection.cursor() as cursorUpd:
-            cursorUpd.execute(sql)
-            connection.commit()
-
-        # Optional Sleep
-        if args.sleep > 0:
-            time.sleep(args.sleep)
+        runQuery(sql)
     else: # answered "no"
         print ("Error: Update declined.");
         sys.exit();
 
+def deleteBatch(ids):
+    global confirmedWrite
+
+    """Delete a batch of rows"""
+
+    # Leave if ids is empty
+    if not ids or len(ids) == 0:
+        return None;
+
+    # Prepare delete
+    print('* Deleting %i rows...' % len(ids))
+    sql = "DELETE FROM " + args.table + " WHERE {0} IN (".format(args.id) + ', '.join([str(x) for x in ids]) + ")"
+    print ("   query: " + sql)
+
+    if confirmedWrite or query_yes_no("* Start deleting?"):
+        # Switch confirmedWrite skip the question for the next delete
+        confirmedWrite = True
+
+        # Execute query
+        runQuery(sql)
+    else: # answered "no"
+        print ("Error: Delete declined.");
+        sys.exit();
+
+def runQuery(sql):
+    """Execute a write query"""
+
+    # Execute query
+    with connection.cursor() as cursorUpd:
+        cursorUpd.execute(sql)
+        connection.commit()
+
+    # Optional Sleep
+    if args.sleep > 0:
+        time.sleep(args.sleep)
 
 def query_yes_no(question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
@@ -75,6 +111,8 @@ def query_yes_no(question, default="yes"):
         an answer is required of the user).
 
     The "answer" return value is True for "yes" or False for "no".
+
+    (thanks https://code.activestate.com/recipes/577058/)
     """
     valid = {"yes": True, "y": True, "ye": True,
              "no": False, "n": False}
@@ -114,48 +152,56 @@ except:
 try:
     with connection.cursor() as cursor:
         minId = 0
-        confirmedUpdate = False
+        confirmedWrite = False
         while 1: # Infinite loop, will be broken by sys.exit()
-            # Get rows to update
+            # Get rows to modify
             print("* Selecting data...")
             sql = "SELECT {0} as id FROM ".format(args.id) + args.table + " WHERE " + args.where + " AND {0} > %s ORDER BY {1} LIMIT %s".format(args.id, args.id)
-            print ("   query: " + sql % (minId, args.select_batch_size))
-            cursor.execute(sql, (minId, args.select_batch_size))
+            print ("   query: " + sql % (minId, args.read_batch_size))
+            cursor.execute(sql, (minId, args.read_batch_size))
 
             # Row count
             count = cursor.rowcount
 
             # No more rows
             if count == 0:
-                print ("* No more rows to update!");
+                print ("* No more rows to modify!");
                 sys.exit();
 
             # Loop thru rows
-            print("* Preparing to update %s rows..." % count)
+            print("* Preparing to modify %s rows..." % count)
             ids = []
             for result in cursor:
                 # Append ID to batch
                 ids.append(result.get('id'));
                 # print(result)
 
-                # Update minimum ID for future select
+                # Minimum ID for future select
                 minId = result.get('id');
 
-                # Process update when batch size if reached
-                if len(ids) >= args.update_batch_size:
-                    # Process update
-                    update_batch(ids)
+                # Process write when batch size if reached
+                if len(ids) >= args.write_batch_size:
+                    if args.action == 'delete':
+                        # Process delete
+                        deleteBatch(ids)
+                    else :
+                        # Process update
+                        updateBatch(ids)
 
                     # Reset ids
                     ids = []
 
             # Process final batch
             if ids and len(ids) >= 0:
-                # Process update
-                update_batch(ids)
+                if args.action == 'delete':
+                    # Process delete
+                    deleteBatch(ids)
+                else :
+                    # Process update
+                    updateBatch(ids)
 except SystemExit:
     print("* Program exited")
 #except:
-#    print("* Unexpected error:", sys.exc_info()[0])
+#    print("Unexpected error:", sys.exc_info()[0])
 finally:
     connection.close()

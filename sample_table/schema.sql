@@ -1,8 +1,8 @@
 -- Create sample table
-CREATE TABLE test_update (id int AUTO_INCREMENT PRIMARY key, number float default null, date datetime default null);
+CREATE TABLE batch_test (id int AUTO_INCREMENT PRIMARY key, number float default null, date datetime default null);
 
 -- Add 100 rows
-INSERT INTO test_update (number, date)
+INSERT INTO batch_test (number, date)
 VALUES (RAND(), null), (RAND(), null), (RAND(), null), (RAND(), null), (RAND(), null),
        (RAND(), null), (RAND(), null), (RAND(), null), (RAND(), null), (RAND(), null),
        (RAND(), null), (RAND(), null), (RAND(), null), (RAND(), null), (RAND(), null),

@@ -1,8 +1,8 @@
 # mysql-batch-update
 
-Updating a large amount of rows in MySQL will create locks that will paralyze other queries running in parallel.
+Updating or deleting a large amount of rows in MySQL will create locks that will paralyze other queries running in parallel.
 
-This tool will run updated in small batches to prevent table-level and row-level locking (with InnoDB). If a large number of rows has to be updated, it is also possible to limit the number of rows selected at once.
+This tool will run UPDATE and DELETE queries in small batches to prevent table-level and row-level locking (with InnoDB). If a large number of rows has to be updated or deleted, it is also possible to limit the number of rows selected at once.
 
 ## Requirements
 
@@ -10,57 +10,101 @@ This tool will run updated in small batches to prevent table-level and row-level
  - pymysql (`pip3 install pymysql`)
  - argparse (`pip3 install argparse`)
 
-## Example
+## UPDATE example
 
 You can run this example with the schema available in [sample_table/schema.sql](sample_table/schema.sql)
 
 The following example will be identical to the following update:
 
 ```sql
-UPDATE test_update SET date = NOW() WHERE number > 0.2 AND date is NULL;
+UPDATE batch_test SET date = NOW() WHERE number > 0.2 AND date is NULL;
 ```
 
-To re-create this update 20 rows at a time:
+This is the equivalent to process this update with batches of 20 rows:
 
 ```bash
-python3 batch_update.py --host localhost \
-                        --user root \
-                        --password ***** \
-                        --database "test" \
-                        --table "test_update" \
-                        --update_batch_size 20 \
-                        --where "number > 0.2 AND date IS NULL" \
-                        --update "date = NOW()"
+python3 batch-mysql.py --host localhost \
+                       --user root \
+                       --password ***** \
+                       --database "test" \
+                       --table "batch_test" \
+                       --write_batch_size 20 \
+                       --where "number > 0.2 AND date IS NULL" \
+                       --set "date = NOW()"
 ```
 
 Output sample:
 
 ```bash
 * Selecting data...
-   query: SELECT id as id FROM test_update WHERE number > 0.2 AND date IS NULL AND id > 0 ORDER BY id LIMIT 1000
-* Preparing to update 73 rows...
+   query: SELECT id as id FROM batch_test WHERE number > 0.2 AND date IS NULL AND id > 0 ORDER BY id LIMIT 1000
+* Preparing to modify 83 rows...
 * Updating 20 rows...
-   query: UPDATE test_update SET date = NOW() WHERE id IN (1, 2, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 26)
+   query: UPDATE batch_test SET date = NOW() WHERE id IN (1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22)
 * Start updating? [Y/n]
 * Updating 20 rows...
-   query: UPDATE test_update SET date = NOW() WHERE id IN (27, 28, 30, 32, 34, 35, 38, 40, 42, 43, 45, 47, 48, 49, 50, 51, 52, 55, 56, 57)
+   query: UPDATE batch_test SET date = NOW() WHERE id IN (23, 25, 26, 28, 29, 30, 31, 33, 35, 36, 37, 38, 39, 40, 42, 43, 44, 45, 46, 47)
 * Updating 20 rows...
-   query: UPDATE test_update SET date = NOW() WHERE id IN (58, 59, 60, 61, 62, 63, 64, 66, 67, 69, 70, 71, 72, 73, 74, 76, 78, 79, 81, 83)
-* Updating 13 rows...
-   query: UPDATE test_update SET date = NOW() WHERE id IN (84, 85, 86, 87, 88, 90, 91, 94, 95, 96, 97, 98, 99)
+   query: UPDATE batch_test SET date = NOW() WHERE id IN (48, 49, 50, 51, 52, 53, 54, 55, 56, 58, 59, 60, 61, 63, 64, 65, 68, 69, 70, 71)
+* Updating 20 rows...
+   query: UPDATE batch_test SET date = NOW() WHERE id IN (72, 74, 75, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 88, 89, 90, 91, 92, 94, 95)
+* Updating 3 rows...
+   query: UPDATE batch_test SET date = NOW() WHERE id IN (97, 98, 100)
 * Selecting data...
-   query: SELECT id as id FROM test_update WHERE number > 0.2 AND date IS NULL AND id > 99 ORDER BY id LIMIT 1000
-* No more rows to update!
+   query: SELECT id as id FROM batch_test WHERE number > 0.2 AND date IS NULL AND id > 100 ORDER BY id LIMIT 1000
+* No more rows to modify!
+* Program exited
+```
+
+## DELETE example
+
+The following example will be identical to the following delete:
+
+```sql
+DELETE FROM batch_test WHERE number > 0.2 AND date is NULL;
+```
+
+This is the equivalent to process this delete with batches of 20 rows:
+
+```bash
+python3 batch-mysql.py --host localhost \
+                       --user root \
+                       --password ***** \
+                       --database "test" \
+                       --table "batch_test" \
+                       --write_batch_size 20 \
+                       --where "number > 0.2 AND date IS NULL" \
+                       --action "delete"
+```
+
+Output sample:
+
+```bash
+* Selecting data...
+   query: SELECT id as id FROM batch_test WHERE number > 0.2 AND date IS NULL AND id > 0 ORDER BY id LIMIT 1000
+* Preparing to modify 79 rows...
+* Deleting 20 rows...
+   query: DELETE FROM batch_test WHERE id IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 17, 19, 20, 21, 22, 23)
+* Start deleting? [Y/n]
+* Deleting 20 rows...
+   query: DELETE FROM batch_test WHERE id IN (24, 25, 26, 28, 34, 35, 36, 37, 38, 39, 40, 41, 44, 45, 47, 48, 50, 51, 52, 53)
+* Deleting 20 rows...
+   query: DELETE FROM batch_test WHERE id IN (54, 56, 57, 58, 60, 61, 62, 63, 64, 65, 66, 67, 68, 70, 71, 72, 73, 74, 75, 76)
+* Deleting 19 rows...
+   query: DELETE FROM batch_test WHERE id IN (77, 78, 79, 80, 82, 83, 86, 87, 88, 89, 90, 91, 93, 94, 95, 96, 98, 99, 100)
+* Selecting data...
+   query: SELECT id as id FROM batch_test WHERE number > 0.2 AND date IS NULL AND id > 100 ORDER BY id LIMIT 1000
+* No more rows to modify!
 * Program exited
 ```
 
 ## Usage
 
 ```bash
-usage: batch_update.py [-h] [-H HOST] [-P PORT] -U USER [-p PASSWORD] -d
-                       DATABASE -t TABLE [-id ID] -w WHERE -u UPDATE
-                       [-sbz SELECT_BATCH_SIZE] [-ubz UPDATE_BATCH_SIZE]
-                       [-s SLEEP]
+usage: batch-mysql.py [-h] [-H HOST] [-P PORT] -U USER [-p PASSWORD] -d
+                      DATABASE -t TABLE [-id ID] -w WHERE [-s SET]
+                      [-rbz READ_BATCH_SIZE] [-wbz WRITE_BATCH_SIZE]
+                      [-S SLEEP] [-a {update,delete}]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -76,14 +120,15 @@ optional arguments:
   -id ID, --id ID       Name of the ID column
   -w WHERE, --where WHERE
                         Select WHERE clause
-  -u UPDATE, --update UPDATE
-                        Update SET clause
-  -sbz SELECT_BATCH_SIZE, --select_batch_size SELECT_BATCH_SIZE
+  -s SET, --set SET     Update SET clause
+  -rbz READ_BATCH_SIZE, --read_batch_size READ_BATCH_SIZE
                         Select batch size
-  -ubz UPDATE_BATCH_SIZE, --update_batch_size UPDATE_BATCH_SIZE
-                        Update batch size
-  -s SLEEP, --sleep SLEEP
-                        Sleep after an update
+  -wbz WRITE_BATCH_SIZE, --write_batch_size WRITE_BATCH_SIZE
+                        Update/delete batch size
+  -S SLEEP, --sleep SLEEP
+                        Sleep after each batch
+  -a {update,delete}, --action {update,delete}
+                        Action ('update' or 'delete')
 ```
 
 ## License
