@@ -2,10 +2,11 @@
 
 # Author: Gabriel Bordeaux (gabfl)
 # Github: https://github.com/gabfl/mysql-batch-update
-# Version: 1.0.1
-# Compatible with python 3
+# Version: 1.0.2
+# Compatible with python 2.7 & 3
 
-import pymysql.cursors, sys, argparse, time
+import sys, time
+import pymysql.cursors, argparse
 
 # Parse arguments
 parser = argparse.ArgumentParser()
@@ -127,7 +128,17 @@ def query_yes_no(question, default="yes"):
 
     while True:
         sys.stdout.write(question + prompt)
-        choice = input().lower()
+
+        # Get user choice with python 2.7 retro-compatibility
+        if sys.version_info >= (3,0):
+            # Python 3
+            # print ("python >= 3");
+            choice = input().lower()
+        else:
+            # Python 2.7 retro-compatibility
+            # print ("python 2.7");
+            choice = raw_input().lower()
+
         if default is not None and choice == '':
             return valid[default]
         elif choice in valid:

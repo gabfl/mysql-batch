@@ -6,7 +6,7 @@ This tool will run UPDATE and DELETE queries in small batches to prevent table-l
 
 ## Requirements
 
- - Python 3
+ - Python 2.7 or 3
  - pymysql (`pip3 install pymysql`)
  - argparse (`pip3 install argparse`)
 
@@ -23,14 +23,14 @@ UPDATE batch_test SET date = NOW() WHERE number > 0.2 AND date is NULL;
 This is the equivalent to process this update with batches of 20 rows:
 
 ```bash
-python3 mysql-batch.py --host localhost \
-                       --user root \
-                       --password ***** \
-                       --database "test" \
-                       --table "batch_test" \
-                       --write_batch_size 20 \
-                       --where "number > 0.2 AND date IS NULL" \
-                       --set "date = NOW()"
+./mysql-batch.py --host localhost \
+                 --user root \
+                 --password secret_password \
+                 --database "test" \
+                 --table "batch_test" \
+                 --write_batch_size 20 \
+                 --where "number > 0.2 AND date IS NULL" \
+                 --set "date = NOW()"
 ```
 
 Output sample:
@@ -67,14 +67,14 @@ DELETE FROM batch_test WHERE number > 0.2 AND date is NULL;
 This is the equivalent to process this delete with batches of 20 rows:
 
 ```bash
-python3 mysql-batch.py --host localhost \
-                       --user root \
-                       --password ***** \
-                       --database "test" \
-                       --table "batch_test" \
-                       --write_batch_size 20 \
-                       --where "number > 0.2 AND date IS NULL" \
-                       --action "delete"
+./mysql-batch.py --host localhost \
+                 --user root \
+                 --password secret_password \
+                 --database "test" \
+                 --table "batch_test" \
+                 --write_batch_size 20 \
+                 --where "number > 0.2 AND date IS NULL" \
+                 --action "delete"
 ```
 
 Output sample:
