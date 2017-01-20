@@ -102,7 +102,7 @@ Output sample:
 
 ```bash
 usage: batch-mysql.py [-h] [-H HOST] [-P PORT] -U USER [-p PASSWORD] -d
-                      DATABASE -t TABLE [-id ID] -w WHERE [-s SET]
+                      DATABASE -t TABLE [-id PRIMARY_KEY] -w WHERE [-s SET]
                       [-rbz READ_BATCH_SIZE] [-wbz WRITE_BATCH_SIZE]
                       [-S SLEEP] [-a {update,delete}]
 
@@ -117,7 +117,8 @@ optional arguments:
                         MySQL database name
   -t TABLE, --table TABLE
                         MySQL table
-  -id ID, --id ID       Name of the ID column
+  -id PRIMARY_KEY, --primary_key PRIMARY_KEY
+                        Name of the primary key column
   -w WHERE, --where WHERE
                         Select WHERE clause
   -s SET, --set SET     Update SET clause

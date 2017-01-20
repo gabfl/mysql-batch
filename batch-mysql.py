@@ -21,8 +21,8 @@ parser.add_argument("-d", "--database", required = True,
                     help="MySQL database name")
 parser.add_argument("-t", "--table", required = True,
                     help="MySQL table")
-parser.add_argument("-id", "--id", default='id',
-                    help="Name of the ID column")
+parser.add_argument("-id", "--primary_key", default='id',
+                    help="Name of the primary key column")
 parser.add_argument("-w", "--where", required = True,
                     help="Select WHERE clause")
 parser.add_argument("-s", "--set",
@@ -53,7 +53,7 @@ def updateBatch(ids):
 
     # Prepare update
     print('* Updating %i rows...' % len(ids))
-    sql = "UPDATE " + args.table + " SET " + args.set + " WHERE {0} IN (".format(args.id) + ', '.join([str(x) for x in ids]) + ")"
+    sql = "UPDATE " + args.table + " SET " + args.set + " WHERE {0} IN (".format(args.primary_key) + ', '.join([str(x) for x in ids]) + ")"
     print ("   query: " + sql)
 
     if confirmedWrite or query_yes_no("* Start updating?"):
@@ -77,7 +77,7 @@ def deleteBatch(ids):
 
     # Prepare delete
     print('* Deleting %i rows...' % len(ids))
-    sql = "DELETE FROM " + args.table + " WHERE {0} IN (".format(args.id) + ', '.join([str(x) for x in ids]) + ")"
+    sql = "DELETE FROM " + args.table + " WHERE {0} IN (".format(args.primary_key) + ', '.join([str(x) for x in ids]) + ")"
     print ("   query: " + sql)
 
     if confirmedWrite or query_yes_no("* Start deleting?"):
@@ -156,7 +156,7 @@ try:
         while 1: # Infinite loop, will be broken by sys.exit()
             # Get rows to modify
             print("* Selecting data...")
-            sql = "SELECT {0} as id FROM ".format(args.id) + args.table + " WHERE " + args.where + " AND {0} > %s ORDER BY {1} LIMIT %s".format(args.id, args.id)
+            sql = "SELECT {0} as id FROM ".format(args.primary_key) + args.table + " WHERE " + args.where + " AND {0} > %s ORDER BY {1} LIMIT %s".format(args.primary_key, args.primary_key)
             print ("   query: " + sql % (minId, args.read_batch_size))
             cursor.execute(sql, (minId, args.read_batch_size))
 
