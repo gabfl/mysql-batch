@@ -23,7 +23,7 @@ UPDATE batch_test SET date = NOW() WHERE number > 0.2 AND date is NULL;
 This is the equivalent to process this update with batches of 20 rows:
 
 ```bash
-python3 batch-mysql.py --host localhost \
+python3 mysql-batch.py --host localhost \
                        --user root \
                        --password ***** \
                        --database "test" \
@@ -67,7 +67,7 @@ DELETE FROM batch_test WHERE number > 0.2 AND date is NULL;
 This is the equivalent to process this delete with batches of 20 rows:
 
 ```bash
-python3 batch-mysql.py --host localhost \
+python3 mysql-batch.py --host localhost \
                        --user root \
                        --password ***** \
                        --database "test" \
@@ -101,7 +101,7 @@ Output sample:
 ## Usage
 
 ```bash
-usage: batch-mysql.py [-h] [-H HOST] [-P PORT] -U USER [-p PASSWORD] -d
+usage: mysql-batch.py [-h] [-H HOST] [-P PORT] -U USER [-p PASSWORD] -d
                       DATABASE -t TABLE [-id PRIMARY_KEY] -w WHERE [-s SET]
                       [-rbz READ_BATCH_SIZE] [-wbz WRITE_BATCH_SIZE]
                       [-S SLEEP] [-a {update,delete}]
