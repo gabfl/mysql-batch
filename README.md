@@ -104,7 +104,7 @@ Output sample:
 usage: mysql-batch.py [-h] [-H HOST] [-P PORT] -U USER [-p PASSWORD] -d
                       DATABASE -t TABLE [-id PRIMARY_KEY] -w WHERE [-s SET]
                       [-rbz READ_BATCH_SIZE] [-wbz WRITE_BATCH_SIZE]
-                      [-S SLEEP] [-a {update,delete}]
+                      [-S SLEEP] [-a {update,delete}] [-n]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -130,6 +130,8 @@ optional arguments:
                         Sleep after each batch
   -a {update,delete}, --action {update,delete}
                         Action ('update' or 'delete')
+  -n, --no_confirm      Don't ask for confirmation before to run the write
+                        queries
 ```
 
 ## License
