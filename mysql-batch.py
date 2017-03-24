@@ -28,7 +28,7 @@ parser.add_argument("-w", "--where", required = True,
                     help="Select WHERE clause")
 parser.add_argument("-s", "--set",
                     help="Update SET clause")
-parser.add_argument("-rbz", "--read_batch_size", type=int, default = 1000,
+parser.add_argument("-rbz", "--read_batch_size", type=int, default = 10000,
                     help="Select batch size")
 parser.add_argument("-wbz", "--write_batch_size", type=int, default = 50,
                     help="Update/delete batch size")
@@ -36,6 +36,8 @@ parser.add_argument("-S", "--sleep", type=float, default = 0.00,
                     help="Sleep after each batch")
 parser.add_argument("-a", "--action", default = 'update', choices=['update', 'delete'],
                     help="Action ('update' or 'delete')")
+parser.add_argument("-n", "--no_confirm", action='store_true',
+                    help="Don't ask for confirmation before to run the write queries")
 args = parser.parse_args()
 
 # Make sure we have a SET clause for updates
@@ -161,9 +163,15 @@ except:
     sys.exit();
 
 try:
+    # confirmedWrite default value
+    confirmedWrite = False
+    if args.no_confirm:
+        confirmedWrite = True
+
     with connection.cursor() as cursor:
+        # Default vars
         minId = 0
-        confirmedWrite = False
+
         while 1: # Infinite loop, will be broken by sys.exit()
             # Get rows to modify
             print("* Selecting data...")
