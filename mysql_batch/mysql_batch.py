@@ -149,78 +149,84 @@ def query_yes_no(question, default="yes"):
             sys.stdout.write("Please respond with 'yes' or 'no' "
                              "(or 'y' or 'n').\n")
 
-# Connect to the database
-try:
-    connection = pymysql.connect(host = args.host,
-                                 user = args.user,
-                                 port = args.port,
-                                 password = args.password,
-                                 db = args.database,
-                                 charset='utf8mb4',
-                                 cursorclass=pymysql.cursors.DictCursor)
-except:
-    print ("Error: MySQL connection failed.");
-    sys.exit();
+def main():
+    global confirmedWrite, connection
 
-try:
-    # confirmedWrite default value
-    confirmedWrite = False
-    if args.no_confirm:
-        confirmedWrite = True
+    # Connect to the database
+    try:
+        connection = pymysql.connect(host = args.host,
+                                     user = args.user,
+                                     port = args.port,
+                                     password = args.password,
+                                     db = args.database,
+                                     charset='utf8mb4',
+                                     cursorclass=pymysql.cursors.DictCursor)
+    except:
+        print ("Error: MySQL connection failed.");
+        sys.exit();
 
-    with connection.cursor() as cursor:
-        # Default vars
-        minId = 0
+    try:
+        # confirmedWrite default value
+        confirmedWrite = False
+        if args.no_confirm:
+            confirmedWrite = True
 
-        while 1: # Infinite loop, will be broken by sys.exit()
-            # Get rows to modify
-            print("* Selecting data...")
-            sql = "SELECT {0} as id FROM ".format(args.primary_key) + args.table + " WHERE " + args.where + " AND {0} > %s ORDER BY {1} LIMIT %s".format(args.primary_key, args.primary_key)
-            print ("   query: " + sql % (minId, args.read_batch_size))
-            cursor.execute(sql, (minId, args.read_batch_size))
+        with connection.cursor() as cursor:
+            # Default vars
+            minId = 0
 
-            # Row count
-            count = cursor.rowcount
+            while 1: # Infinite loop, will be broken by sys.exit()
+                # Get rows to modify
+                print("* Selecting data...")
+                sql = "SELECT {0} as id FROM ".format(args.primary_key) + args.table + " WHERE " + args.where + " AND {0} > %s ORDER BY {1} LIMIT %s".format(args.primary_key, args.primary_key)
+                print ("   query: " + sql % (minId, args.read_batch_size))
+                cursor.execute(sql, (minId, args.read_batch_size))
 
-            # No more rows
-            if count == 0:
-                print ("* No more rows to modify!");
-                sys.exit();
+                # Row count
+                count = cursor.rowcount
 
-            # Loop thru rows
-            print("* Preparing to modify %s rows..." % count)
-            ids = []
-            for result in cursor:
-                # Append ID to batch
-                ids.append(result.get('id'));
-                # print(result)
+                # No more rows
+                if count == 0:
+                    print ("* No more rows to modify!");
+                    sys.exit();
 
-                # Minimum ID for future select
-                minId = result.get('id');
+                # Loop thru rows
+                print("* Preparing to modify %s rows..." % count)
+                ids = []
+                for result in cursor:
+                    # Append ID to batch
+                    ids.append(result.get('id'));
+                    # print(result)
 
-                # Process write when batch size if reached
-                if len(ids) >= args.write_batch_size:
+                    # Minimum ID for future select
+                    minId = result.get('id');
+
+                    # Process write when batch size if reached
+                    if len(ids) >= args.write_batch_size:
+                        if args.action == 'delete':
+                            # Process delete
+                            deleteBatch(ids)
+                        else :
+                            # Process update
+                            updateBatch(ids)
+
+                        # Reset ids
+                        ids = []
+
+                # Process final batch
+                if ids and len(ids) >= 0:
                     if args.action == 'delete':
                         # Process delete
                         deleteBatch(ids)
                     else :
                         # Process update
                         updateBatch(ids)
+    except SystemExit:
+        print("* Program exited")
+    #except:
+    #    print("Unexpected error:", sys.exc_info()[0])
+    finally:
+        connection.close()
 
-                    # Reset ids
-                    ids = []
-
-            # Process final batch
-            if ids and len(ids) >= 0:
-                if args.action == 'delete':
-                    # Process delete
-                    deleteBatch(ids)
-                else :
-                    # Process update
-                    updateBatch(ids)
-except SystemExit:
-    print("* Program exited")
-#except:
-#    print("Unexpected error:", sys.exc_info()[0])
-finally:
-    connection.close()
+if __name__ == '__main__':
+    main()

@@ -4,11 +4,11 @@ Updating or deleting a large amount of rows in MySQL will create locks that will
 
 This tool will run UPDATE and DELETE queries in small batches to prevent table-level and row-level locking (with InnoDB). If a large number of rows has to be updated or deleted, it is also possible to limit the number of rows selected at once.
 
-## Requirements
+## Installation
 
- - Python 2.7 or 3
- - pymysql (`pip3 install pymysql`)
- - argparse (`pip3 install argparse`)
+```
+pip3 install mysql_batch
+```
 
 ## UPDATE example
 
@@ -23,14 +23,14 @@ UPDATE batch_test SET date = NOW() WHERE number > 0.2 AND date is NULL;
 This is the equivalent to process this update with batches of 20 rows:
 
 ```bash
-./mysql-batch.py --host localhost \
-                 --user root \
-                 --password secret_password \
-                 --database "test" \
-                 --table "batch_test" \
-                 --write_batch_size 20 \
-                 --where "number > 0.2 AND date IS NULL" \
-                 --set "date = NOW()"
+mysql_batch --host localhost \
+            --user root \
+            --password secret_password \
+            --database "test" \
+            --table "batch_test" \
+            --write_batch_size 20 \
+            --where "number > 0.2 AND date IS NULL" \
+            --set "date = NOW()"
 ```
 
 Output sample:
@@ -67,14 +67,14 @@ DELETE FROM batch_test WHERE number > 0.2 AND date is NULL;
 This is the equivalent to process this delete with batches of 20 rows:
 
 ```bash
-./mysql-batch.py --host localhost \
-                 --user root \
-                 --password secret_password \
-                 --database "test" \
-                 --table "batch_test" \
-                 --write_batch_size 20 \
-                 --where "number > 0.2 AND date IS NULL" \
-                 --action "delete"
+mysql_batch --host localhost \
+            --user root \
+            --password secret_password \
+            --database "test" \
+            --table "batch_test" \
+            --write_batch_size 20 \
+            --where "number > 0.2 AND date IS NULL" \
+            --action "delete"
 ```
 
 Output sample:
@@ -101,10 +101,10 @@ Output sample:
 ## Usage
 
 ```bash
-usage: mysql-batch.py [-h] [-H HOST] [-P PORT] -U USER [-p PASSWORD] -d
-                      DATABASE -t TABLE [-id PRIMARY_KEY] -w WHERE [-s SET]
-                      [-rbz READ_BATCH_SIZE] [-wbz WRITE_BATCH_SIZE]
-                      [-S SLEEP] [-a {update,delete}] [-n]
+usage: mysql_batch [-h] [-H HOST] [-P PORT] -U USER [-p PASSWORD] -d DATABASE
+                   -t TABLE [-id PRIMARY_KEY] -w WHERE [-s SET]
+                   [-rbz READ_BATCH_SIZE] [-wbz WRITE_BATCH_SIZE] [-S SLEEP]
+                   [-a {update,delete}] [-n]
 
 optional arguments:
   -h, --help            show this help message and exit
