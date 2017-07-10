@@ -8,7 +8,7 @@ except(IOError, ImportError):
 
 setup (
     name = 'mysql_batch',
-    version = '1.0.3',
+    version = '1.0.4',
     description = 'Run large MySQL UPDATE and DELETE queries with small batches to prevent table/row-level locks',
     long_description = long_description,
     author = 'Gabriel Bordeaux',
@@ -16,6 +16,7 @@ setup (
     url = 'https://github.com/gabfl/mysql-batch-update',
     license = 'MIT',
     packages = ['mysql_batch'],
+    package_dir = { 'mysql_batch': 'src' },
     install_requires = ['pymysql', 'argparse'], # external dependencies
     entry_points = {
         'console_scripts': [
