@@ -2,7 +2,6 @@
 
 # Author: Gabriel Bordeaux (gabfl)
 # Github: https://github.com/gabfl/mysql-batch-update
-# Version: 1.0.2
 # Compatible with python 2.7 & 3
 
 import sys, time
