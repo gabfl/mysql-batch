@@ -8,7 +8,7 @@ except(IOError, ImportError):
 
 setup(
     name='mysql_batch',
-    version='1.0.5',
+    version='1.0.6',
     description='Run large MySQL UPDATE and DELETE queries with small batches to prevent table/row-level locks',
     long_description=long_description,
     author='Gabriel Bordeaux',
@@ -23,4 +23,18 @@ setup(
             'mysql_batch = mysql_batch.mysql_batch:main',
         ],
     },
+    classifiers=[  # see https://pypi.python.org/pypi?%3Aaction=list_classifiers
+        'Topic :: Software Development',
+        'Topic :: Database',
+        'Topic :: Database :: Database Engines/Servers',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: MacOS',
+        'Operating System :: POSIX :: Linux',
+        'Natural Language :: English',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python',
+        #'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
+    ],
 )
