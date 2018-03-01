@@ -1,4 +1,4 @@
-# mysql-batch-update (and delete!)
+# mysql-batch
 
 Updating or deleting a large amount of rows in MySQL will create locks that will paralyze other queries running in parallel.
 

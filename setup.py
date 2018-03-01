@@ -13,7 +13,7 @@ setup(
     long_description=long_description,
     author='Gabriel Bordeaux',
     author_email='pypi@gab.lc',
-    url='https://github.com/gabfl/mysql-batch-update',
+    url='https://github.com/gabfl/mysql-batch',
     license='MIT',
     packages=['mysql_batch'],
     package_dir={'mysql_batch': 'src'},
