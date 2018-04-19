@@ -171,7 +171,7 @@ def main():
                                      db=args.database,
                                      charset='utf8mb4',
                                      cursorclass=pymysql.cursors.DictCursor)
-    except:
+    except Exception:
         print("Error: MySQL connection failed.")
         sys.exit()
 
