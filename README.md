@@ -1,5 +1,7 @@
 # mysql-batch
 
+[![Build Status](https://travis-ci.org/gabfl/mysql-batch.svg?branch=master)](https://travis-ci.org/gabfl/mysql-batch)
+
 Updating or deleting a large amount of rows in MySQL will create locks that will paralyze other queries running in parallel.
 
 This tool will run UPDATE and DELETE queries in small batches to prevent table-level and row-level locking (with InnoDB). If a large number of rows has to be updated or deleted, it is also possible to limit the number of rows selected at once.
