@@ -9,48 +9,13 @@ import time
 import pymysql.cursors
 import argparse
 
-# Parse arguments
-parser = argparse.ArgumentParser()
-parser.add_argument("-H", "--host", default="127.0.0.1",
-                    help="MySQL server host")
-parser.add_argument("-P", "--port", type=int, default=3306,
-                    help="MySQL server port")
-parser.add_argument("-U", "--user", required=True,
-                    help="MySQL user")
-parser.add_argument("-p", "--password", default='',
-                    help="MySQL password")
-parser.add_argument("-d", "--database", required=True,
-                    help="MySQL database name")
-parser.add_argument("-t", "--table", required=True,
-                    help="MySQL table")
-parser.add_argument("-id", "--primary_key", default='id',
-                    help="Name of the primary key column")
-parser.add_argument("-w", "--where", required=True,
-                    help="Select WHERE clause")
-parser.add_argument("-s", "--set",
-                    help="Update SET clause")
-parser.add_argument("-rbz", "--read_batch_size", type=int, default=10000,
-                    help="Select batch size")
-parser.add_argument("-wbz", "--write_batch_size", type=int, default=50,
-                    help="Update/delete batch size")
-parser.add_argument("-S", "--sleep", type=float, default=0.00,
-                    help="Sleep after each batch")
-parser.add_argument("-a", "--action", default='update', choices=['update', 'delete'],
-                    help="Action ('update' or 'delete')")
-parser.add_argument("-n", "--no_confirm", action='store_true',
-                    help="Don't ask for confirmation before to run the write queries")
-args = parser.parse_args()
 
-# Make sure we have a SET clause for updates
-if args.action == 'update' and args.set is None:
-    print("Error: argument -s/--set is required for updates.")
-    sys.exit()
+def update_batch(ids, table, set_, primary_key='id'):
+    """
+        Update a batch of rows
+    """
 
-
-def updateBatch(ids):
-    global confirmedWrite
-
-    """Update a batch of rows"""
+    global confirmed_write
 
     # Leave if ids is empty
     if not ids or len(ids) == 0:
@@ -58,26 +23,30 @@ def updateBatch(ids):
 
     # Prepare update
     print('* Updating %i rows...' % len(ids))
-    sql = "UPDATE " + args.table + " SET " + args.set + \
-        " WHERE {0} IN (".format(args.primary_key) + \
+    sql = "UPDATE " + table + " SET " + set_ + \
+        " WHERE {0} IN (".format(primary_key) + \
         ', '.join([str(x) for x in ids]) + ")"
     print("   query: " + sql)
 
-    if confirmedWrite or query_yes_no("* Start updating?"):
-        # Switch confirmedWrite skip the question for the next update
-        confirmedWrite = True
+    if confirmed_write or query_yes_no("* Start updating?"):
+        # Switch confirmed_write skip the question for the next update
+        confirmed_write = True
 
         # Execute query
-        runQuery(sql)
+        run_query(sql)
     else:  # answered "no"
         print("Error: Update declined.")
         sys.exit()
 
+    return True
 
-def deleteBatch(ids):
-    global confirmedWrite
 
-    """Delete a batch of rows"""
+def delete_batch(ids, table, primary_key='id'):
+    """
+        Delete a batch of rows
+    """
+
+    global confirmed_write
 
     # Leave if ids is empty
     if not ids or len(ids) == 0:
@@ -85,23 +54,25 @@ def deleteBatch(ids):
 
     # Prepare delete
     print('* Deleting %i rows...' % len(ids))
-    sql = "DELETE FROM " + args.table + \
-        " WHERE {0} IN (".format(args.primary_key) + \
+    sql = "DELETE FROM " + table + \
+        " WHERE {0} IN (".format(primary_key) + \
         ', '.join([str(x) for x in ids]) + ")"
     print("   query: " + sql)
 
-    if confirmedWrite or query_yes_no("* Start deleting?"):
-        # Switch confirmedWrite skip the question for the next delete
-        confirmedWrite = True
+    if confirmed_write or query_yes_no("* Start deleting?"):
+        # Switch confirmed_write skip the question for the next delete
+        confirmed_write = True
 
         # Execute query
-        runQuery(sql)
+        run_query(sql)
     else:  # answered "no"
         print("Error: Delete declined.")
         sys.exit()
 
+    return True
 
-def runQuery(sql):
+
+def run_query(sql, sleep=0):
     """Execute a write query"""
 
     # Execute query
@@ -110,8 +81,26 @@ def runQuery(sql):
         connection.commit()
 
     # Optional Sleep
-    if args.sleep > 0:
-        time.sleep(args.sleep)
+    if sleep > 0:
+        time.sleep(sleep)
+
+    return True
+
+
+def get_input():
+    """
+        Get user input
+    """
+
+    # Get user choice with python 2.7 retro-compatibility
+    if sys.version_info >= (3, 0):
+        # Python 3
+        # print ("python >= 3");
+        return input().lower()
+    else:
+        # Python 2.7 retro-compatibility
+        # print ("python 2.7");
+        return raw_input().lower()
 
 
 def query_yes_no(question, default="yes"):
@@ -126,8 +115,10 @@ def query_yes_no(question, default="yes"):
 
     (thanks https://code.activestate.com/recipes/577058/)
     """
+
     valid = {"yes": True, "y": True, "ye": True,
              "no": False, "n": False}
+
     if default is None:
         prompt = " [y/n] "
     elif default == "yes":
@@ -139,16 +130,7 @@ def query_yes_no(question, default="yes"):
 
     while True:
         sys.stdout.write(question + prompt)
-
-        # Get user choice with python 2.7 retro-compatibility
-        if sys.version_info >= (3, 0):
-            # Python 3
-            # print ("python >= 3");
-            choice = input().lower()
-        else:
-            # Python 2.7 retro-compatibility
-            # print ("python 2.7");
-            choice = raw_input().lower()
+        choice = get_input()
 
         if default is not None and choice == '':
             return valid[default]
@@ -159,40 +141,52 @@ def query_yes_no(question, default="yes"):
                              "(or 'y' or 'n').\n")
 
 
-def main():
-    global confirmedWrite, connection
+def connect(host, user, port, password, database):
+    """
+        Connect to a MySQL database
+    """
 
     # Connect to the database
     try:
-        connection = pymysql.connect(host=args.host,
-                                     user=args.user,
-                                     port=args.port,
-                                     password=args.password,
-                                     db=args.database,
-                                     charset='utf8mb4',
-                                     cursorclass=pymysql.cursors.DictCursor)
+        return pymysql.connect(host=host,
+                               user=user,
+                               port=port,
+                               password=password,
+                               db=database,
+                               charset='utf8mb4',
+                               cursorclass=pymysql.cursors.DictCursor)
     except Exception:
-        print("Error: MySQL connection failed.")
-        sys.exit()
+        raise RuntimeError('Error: MySQL connection failed.')
+
+
+def execute(host, user, port, password, database, action, table, where, set_=None, no_confirm=False, primary_key='id', read_batch_size=10000, write_batch_size=50):
+    global confirmed_write, connection
+
+    # Make sure we have a SET clause for updates
+    if action == 'update' and set_ is None:
+        raise RuntimeError('Error: argument -s/--set is required for updates.')
+
+    # Connect to the database
+    connection = connect(host, user, port, password, database)
 
     try:
-        # confirmedWrite default value
-        confirmedWrite = False
-        if args.no_confirm:
-            confirmedWrite = True
+        # confirmed_write default value
+        confirmed_write = False
+        if no_confirm:
+            confirmed_write = True
 
         with connection.cursor() as cursor:
             # Default vars
-            minId = 0
+            min_id = 0
 
             while 1:  # Infinite loop, will be broken by sys.exit()
                 # Get rows to modify
                 print("* Selecting data...")
-                sql = "SELECT {0} as id FROM ".format(args.primary_key) + args.table + " WHERE " + args.where + \
+                sql = "SELECT {0} as id FROM ".format(primary_key) + table + " WHERE " + where + \
                     " AND {0} > %s ORDER BY {1} LIMIT %s".format(
-                        args.primary_key, args.primary_key)
-                print("   query: " + sql % (minId, args.read_batch_size))
-                cursor.execute(sql, (minId, args.read_batch_size))
+                        primary_key, primary_key)
+                print("   query: " + sql % (min_id, read_batch_size))
+                cursor.execute(sql, (min_id, read_batch_size))
 
                 # Row count
                 count = cursor.rowcount
@@ -211,34 +205,85 @@ def main():
                     # print(result)
 
                     # Minimum ID for future select
-                    minId = result.get('id')
+                    min_id = result.get('id')
 
                     # Process write when batch size if reached
-                    if len(ids) >= args.write_batch_size:
-                        if args.action == 'delete':
+                    if len(ids) >= write_batch_size:
+                        if action == 'delete':
                             # Process delete
-                            deleteBatch(ids)
+                            delete_batch(ids, table, primary_key)
                         else:
                             # Process update
-                            updateBatch(ids)
+                            update_batch(ids, table, set_, primary_key)
 
                         # Reset ids
                         ids = []
 
                 # Process final batch
                 if ids and len(ids) >= 0:
-                    if args.action == 'delete':
+                    if action == 'delete':
                         # Process delete
-                        deleteBatch(ids)
+                        delete_batch(ids, table, primary_key)
                     else:
                         # Process update
-                        updateBatch(ids)
+                        update_batch(ids, table, set_, primary_key)
     except SystemExit:
         print("* Program exited")
     # except:
     #    print("Unexpected error:", sys.exc_info()[0])
     finally:
         connection.close()
+
+    return True
+
+
+def main():
+    # Parse arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-H", "--host", default="127.0.0.1",
+                        help="MySQL server host")
+    parser.add_argument("-P", "--port", type=int, default=3306,
+                        help="MySQL server port")
+    parser.add_argument("-U", "--user", required=True,
+                        help="MySQL user")
+    parser.add_argument("-p", "--password", default='',
+                        help="MySQL password")
+    parser.add_argument("-d", "--database", required=True,
+                        help="MySQL database name")
+    parser.add_argument("-t", "--table", required=True,
+                        help="MySQL table")
+    parser.add_argument("-id", "--primary_key", default='id',
+                        help="Name of the primary key column")
+    parser.add_argument("-w", "--where", required=True,
+                        help="Select WHERE clause")
+    parser.add_argument("-s", "--set",
+                        help="Update SET clause")
+    parser.add_argument("-rbz", "--read_batch_size", type=int, default=10000,
+                        help="Select batch size")
+    parser.add_argument("-wbz", "--write_batch_size", type=int, default=50,
+                        help="Update/delete batch size")
+    parser.add_argument("-S", "--sleep", type=float, default=0.00,
+                        help="Sleep after each batch")
+    parser.add_argument("-a", "--action", default='update', choices=['update', 'delete'],
+                        help="Action ('update' or 'delete')")
+    parser.add_argument("-n", "--no_confirm", action='store_true',
+                        help="Don't ask for confirmation before to run the write queries")
+    args = parser.parse_args()
+
+    execute(host=args.host,
+            user=args.user,
+            port=args.port,
+            password=args.password,
+            database=args.database,
+            action=args.action,
+            table=args.table,
+            where=args.where,
+            set_=args.set,
+            no_confirm=args.no_confirm,
+            primary_key=args.primary_key,
+            read_batch_size=args.read_batch_size,
+            write_batch_size=args.write_batch_size
+            )
 
 
 if __name__ == '__main__':
