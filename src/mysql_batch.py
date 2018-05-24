@@ -159,7 +159,11 @@ def connect(host, user, port, password, database):
         raise RuntimeError('Error: MySQL connection failed.')
 
 
-def execute(host, user, port, password, database, action, table, where, set_=None, no_confirm=False, primary_key='id', read_batch_size=10000, write_batch_size=50):
+def execute(host, user, port, password, database, action, table, where, set_=None, no_confirm=False, primary_key='id', read_batch_size=10000, write_batch_size=50, sleep=0):
+    """
+        Execute batch update or delete
+    """
+
     global confirmed_write, connection
 
     # Make sure we have a SET clause for updates
@@ -282,7 +286,8 @@ def main():
             no_confirm=args.no_confirm,
             primary_key=args.primary_key,
             read_batch_size=args.read_batch_size,
-            write_batch_size=args.write_batch_size
+            write_batch_size=args.write_batch_size,
+            sleep=args.sleep
             )
 
 
