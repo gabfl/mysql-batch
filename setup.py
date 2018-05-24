@@ -8,7 +8,7 @@ except(IOError, ImportError):
 
 setup(
     name='mysql_batch',
-    version='1.1',
+    version='1.2',
     description='Run large MySQL UPDATE and DELETE queries with small batches to prevent table/row-level locks',
     long_description=long_description,
     author='Gabriel Bordeaux',

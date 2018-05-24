@@ -10,7 +10,7 @@ import pymysql.cursors
 import argparse
 
 
-def update_batch(ids, table, set_, primary_key='id'):
+def update_batch(ids, table, set_, sleep=0, primary_key='id'):
     """
         Update a batch of rows
     """
@@ -33,7 +33,7 @@ def update_batch(ids, table, set_, primary_key='id'):
         confirmed_write = True
 
         # Execute query
-        run_query(sql)
+        run_query(sql, sleep)
     else:  # answered "no"
         print("Error: Update declined.")
         sys.exit()
@@ -41,7 +41,7 @@ def update_batch(ids, table, set_, primary_key='id'):
     return True
 
 
-def delete_batch(ids, table, primary_key='id'):
+def delete_batch(ids, table, sleep=0, primary_key='id'):
     """
         Delete a batch of rows
     """
@@ -64,7 +64,7 @@ def delete_batch(ids, table, primary_key='id'):
         confirmed_write = True
 
         # Execute query
-        run_query(sql)
+        run_query(sql, sleep)
     else:  # answered "no"
         print("Error: Delete declined.")
         sys.exit()
@@ -159,7 +159,11 @@ def connect(host, user, port, password, database):
         raise RuntimeError('Error: MySQL connection failed.')
 
 
-def execute(host, user, port, password, database, action, table, where, set_=None, no_confirm=False, primary_key='id', read_batch_size=10000, write_batch_size=50):
+def execute(host, user, port, password, database, action, table, where, set_=None, no_confirm=False, primary_key='id', read_batch_size=10000, write_batch_size=50, sleep=0):
+    """
+        Execute batch update or delete
+    """
+
     global confirmed_write, connection
 
     # Make sure we have a SET clause for updates
@@ -211,10 +215,10 @@ def execute(host, user, port, password, database, action, table, where, set_=Non
                     if len(ids) >= write_batch_size:
                         if action == 'delete':
                             # Process delete
-                            delete_batch(ids, table, primary_key)
+                            delete_batch(ids, table, sleep, primary_key)
                         else:
                             # Process update
-                            update_batch(ids, table, set_, primary_key)
+                            update_batch(ids, table, set_, sleep, primary_key)
 
                         # Reset ids
                         ids = []
@@ -223,10 +227,10 @@ def execute(host, user, port, password, database, action, table, where, set_=Non
                 if ids and len(ids) >= 0:
                     if action == 'delete':
                         # Process delete
-                        delete_batch(ids, table, primary_key)
+                        delete_batch(ids, table, sleep, primary_key)
                     else:
                         # Process update
-                        update_batch(ids, table, set_, primary_key)
+                        update_batch(ids, table, set_, sleep, primary_key)
     except SystemExit:
         print("* Program exited")
     # except:
@@ -282,7 +286,8 @@ def main():
             no_confirm=args.no_confirm,
             primary_key=args.primary_key,
             read_batch_size=args.read_batch_size,
-            write_batch_size=args.write_batch_size
+            write_batch_size=args.write_batch_size,
+            sleep=args.sleep
             )
 
 
