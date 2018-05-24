@@ -4,7 +4,7 @@ python:
 services:
   - mysql
 before_install:
-  - pip install pycodestyle
+  - pip install pycodestyle codecov
   - python3 setup.py install
 before_script:
   - mysql -e 'CREATE DATABASE my_db;'
@@ -12,3 +12,7 @@ before_script:
 script:
   - pycodestyle --exclude=venv --ignore=E501 .
   - pytest
+  - coverage run --branch --source=. -m unittest discover -bv
+  - coverage report -m
+after_success:
+  - codecov
