@@ -1,0 +1,11 @@
+[run]
+source=mysql-batch
+
+[report]
+omit =
+  setup.py
+  src/__main__.py
+  venv/*
+exclude_lines =
+  if __name__ == "__main__":
+  def main()
