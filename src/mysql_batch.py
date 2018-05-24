@@ -10,7 +10,7 @@ import pymysql.cursors
 import argparse
 
 
-def update_batch(ids, table, set_, primary_key='id'):
+def update_batch(ids, table, set_, sleep=0, primary_key='id'):
     """
         Update a batch of rows
     """
@@ -33,7 +33,7 @@ def update_batch(ids, table, set_, primary_key='id'):
         confirmed_write = True
 
         # Execute query
-        run_query(sql)
+        run_query(sql, sleep)
     else:  # answered "no"
         print("Error: Update declined.")
         sys.exit()
@@ -41,7 +41,7 @@ def update_batch(ids, table, set_, primary_key='id'):
     return True
 
 
-def delete_batch(ids, table, primary_key='id'):
+def delete_batch(ids, table, sleep=0, primary_key='id'):
     """
         Delete a batch of rows
     """
@@ -64,7 +64,7 @@ def delete_batch(ids, table, primary_key='id'):
         confirmed_write = True
 
         # Execute query
-        run_query(sql)
+        run_query(sql, sleep)
     else:  # answered "no"
         print("Error: Delete declined.")
         sys.exit()
@@ -211,10 +211,10 @@ def execute(host, user, port, password, database, action, table, where, set_=Non
                     if len(ids) >= write_batch_size:
                         if action == 'delete':
                             # Process delete
-                            delete_batch(ids, table, primary_key)
+                            delete_batch(ids, table, sleep, primary_key)
                         else:
                             # Process update
-                            update_batch(ids, table, set_, primary_key)
+                            update_batch(ids, table, set_, sleep, primary_key)
 
                         # Reset ids
                         ids = []
@@ -223,10 +223,10 @@ def execute(host, user, port, password, database, action, table, where, set_=Non
                 if ids and len(ids) >= 0:
                     if action == 'delete':
                         # Process delete
-                        delete_batch(ids, table, primary_key)
+                        delete_batch(ids, table, sleep, primary_key)
                     else:
                         # Process update
-                        update_batch(ids, table, set_, primary_key)
+                        update_batch(ids, table, set_, sleep, primary_key)
     except SystemExit:
         print("* Program exited")
     # except:
