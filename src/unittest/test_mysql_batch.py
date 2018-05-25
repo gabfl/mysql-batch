@@ -9,10 +9,10 @@ from src import mysql_batch
 class Test(unittest.TestCase):
 
     host = 'localhost'
-    user = 'super'
-    database = 'test'
+    user = 'travis'
+    database = 'my_db'
     password = ''
-    port = 8306
+    port = 3306
 
     def test_update_batch(self):
         mysql_batch.connection = mysql_batch.connect(
