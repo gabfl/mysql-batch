@@ -9,10 +9,10 @@ from src import mysql_batch
 class Test(unittest.TestCase):
 
     host = 'localhost'
-    user = 'travis'
-    database = 'my_db'
+    user = 'super'
+    database = 'test'
     password = ''
-    port = 3306
+    port = 8306
 
     def test_update_batch(self):
         mysql_batch.connection = mysql_batch.connect(
@@ -134,7 +134,7 @@ class Test(unittest.TestCase):
         self.assertTrue(mysql_batch.execute(self.host, self.user, self.port, self.password, self.database,
                                             action='delete',
                                             table='batch_test',
-                                            where='id > 20',
+                                            where='date > NOW() - INTERVAL 1 day',
                                             no_confirm=True,
                                             read_batch_size=35,
                                             write_batch_size=15))
