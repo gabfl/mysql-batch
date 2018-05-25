@@ -1,11 +1,12 @@
 language: python
 python:
+  - "3.5"
   - "3.6"
 services:
   - mysql
 before_install:
   - pip install pycodestyle codecov
-  - python3 setup.py install
+  - python setup.py install
 before_script:
   - mysql -e 'CREATE DATABASE my_db;'
   - mysql my_db < sample_table/schema.sql

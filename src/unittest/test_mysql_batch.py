@@ -22,6 +22,25 @@ class Test(unittest.TestCase):
         self.assertTrue(mysql_batch.update_batch(
             [4, 5, 6], 'batch_test', 'date=NOW()'))
 
+    def test_update_batch_2(self):
+        mysql_batch.connection = mysql_batch.connect(
+            self.host, self.user, self.port, self.password, self.database)
+        mysql_batch.confirmed_write = True
+
+        # Return should be none if there are no `ids`
+        self.assertIsNone(mysql_batch.update_batch(
+            [], 'batch_test', 'date=NOW()'))
+
+    def test_update_batch_3(self):
+        with unittest.mock.patch('builtins.input', return_value='no'):
+            mysql_batch.connection = mysql_batch.connect(
+                self.host, self.user, self.port, self.password, self.database)
+            mysql_batch.confirmed_write = False
+
+            # Should exit if the client refuses the update
+            self.assertRaises(SystemExit, mysql_batch.update_batch,
+                              [1, 2, 3], 'batch_test', 'date=NOW()')
+
     def test_delete_batch(self):
         mysql_batch.connection = mysql_batch.connect(
             self.host, self.user, self.port, self.password, self.database)
@@ -29,11 +48,30 @@ class Test(unittest.TestCase):
 
         self.assertTrue(mysql_batch.delete_batch([1, 2, 3], 'batch_test'))
 
+    def test_delete_batch_2(self):
+        mysql_batch.connection = mysql_batch.connect(
+            self.host, self.user, self.port, self.password, self.database)
+        mysql_batch.confirmed_write = True
+
+        # Return should be none if there are no `ids`
+        self.assertIsNone(mysql_batch.delete_batch([], 'batch_test'))
+
+    def test_delete_batch_3(self):
+        with unittest.mock.patch('builtins.input', return_value='no'):
+            mysql_batch.connection = mysql_batch.connect(
+                self.host, self.user, self.port, self.password, self.database)
+            mysql_batch.confirmed_write = False
+
+            # Should exit if the client refuses the update
+            self.assertRaises(SystemExit, mysql_batch.delete_batch,
+                              [1, 2, 3], 'batch_test')
+
     def test_run_query(self):
         mysql_batch.connection = mysql_batch.connect(
             self.host, self.user, self.port, self.password, self.database)
 
         self.assertTrue(mysql_batch.run_query('SELECT 1'))
+        self.assertTrue(mysql_batch.run_query('SELECT 1', 0.001))
 
     def test_get_input(self):
         with unittest.mock.patch('builtins.input', return_value='yes'):
@@ -46,8 +84,22 @@ class Test(unittest.TestCase):
         with unittest.mock.patch('builtins.input', return_value='yes'):
             self.assertTrue(mysql_batch.query_yes_no('some question?'))
 
+        with unittest.mock.patch('builtins.input', return_value='yes'):
+            self.assertTrue(mysql_batch.query_yes_no('some question?', None))
+
+        with unittest.mock.patch('builtins.input', return_value='yes'):
+            self.assertTrue(mysql_batch.query_yes_no('some question?', 'no'))
+
         with unittest.mock.patch('builtins.input', return_value='no'):
             self.assertFalse(mysql_batch.query_yes_no('some question?'))
+
+        # Test invalid default
+        self.assertRaises(ValueError, mysql_batch.query_yes_no,
+                          'unknown_engine', 'invalid_value')
+
+        # Test empty input with a default value
+        with unittest.mock.patch('builtins.input', return_value=''):
+            self.assertTrue(mysql_batch.query_yes_no('some question?', 'yes'))
 
     def test_connect(self):
         connection = mysql_batch.connect(
@@ -55,16 +107,43 @@ class Test(unittest.TestCase):
 
         self.assertIsInstance(connection, pymysql.connections.Connection)
 
+    def test_connect_2(self):
+        # Test exception for connection error
+        self.assertRaises(RuntimeError, mysql_batch.connect,
+                          self.host, 'invalid_value', self.port, self.password, self.database)
+
     def test_execute(self):
         self.assertTrue(mysql_batch.execute(self.host, self.user, self.port, self.password, self.database,
                                             action='update',
                                             table='batch_test',
                                             where='id > 1',
                                             set_='date=NOW()',
-                                            no_confirm=True))
+                                            no_confirm=True,
+                                            read_batch_size=35,
+                                            write_batch_size=15))
+
+        with unittest.mock.patch('builtins.input', return_value='yes'):
+            self.assertTrue(mysql_batch.execute(self.host, self.user, self.port, self.password, self.database,
+                                                action='update',
+                                                table='batch_test',
+                                                where='id < 100',
+                                                set_='date=NOW()',
+                                                read_batch_size=35,
+                                                write_batch_size=15))
 
         self.assertTrue(mysql_batch.execute(self.host, self.user, self.port, self.password, self.database,
                                             action='delete',
                                             table='batch_test',
                                             where='id > 20',
-                                            no_confirm=True))
+                                            no_confirm=True,
+                                            read_batch_size=35,
+                                            write_batch_size=15))
+
+    def test_execute_2(self):
+        # Test exception for update without a set
+        self.assertRaises(RuntimeError, mysql_batch.execute,
+                          self.host, self.user, self.port, self.password, self.database,
+                          action='update',
+                          table='batch_test',
+                          where='id > 1',
+                          no_confirm=True)
