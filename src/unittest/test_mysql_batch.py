@@ -136,7 +136,7 @@ class Test(unittest.TestCase):
         self.assertTrue(mysql_batch.execute(self.host, self.user, self.port, self.password, self.database,
                                             action='delete',
                                             table='batch_test',
-                                            where='date > NOW() - INTERVAL 1 day',
+                                            where='id < 50',
                                             no_confirm=True,
                                             read_batch_size=35,
                                             write_batch_size=15))
