@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/gabfl/mysql-batch.svg?branch=master)](https://travis-ci.org/gabfl/mysql-batch)
 [![codecov](https://codecov.io/gh/gabfl/mysql-batch/branch/master/graph/badge.svg)](https://codecov.io/gh/gabfl/mysql-batch)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-green.svg)](https://raw.githubusercontent.com/gabfl/mysql-batch/master/LICENSE)
 
 Updating or deleting a large amount of rows in MySQL will create locks that will paralyze other queries running in parallel.
 
