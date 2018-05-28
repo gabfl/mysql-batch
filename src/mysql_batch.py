@@ -7,6 +7,7 @@
 import sys
 import time
 import pymysql.cursors
+import pymysql.constants.CLIENT
 import argparse
 
 
@@ -154,6 +155,7 @@ def connect(host, user, port, password, database):
                                password=password,
                                db=database,
                                charset='utf8mb4',
+                               client_flag=pymysql.constants.CLIENT.MULTI_STATEMENTS,
                                cursorclass=pymysql.cursors.DictCursor)
     except Exception:
         raise RuntimeError('Error: MySQL connection failed.')

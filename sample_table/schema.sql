@@ -1,3 +1,6 @@
+-- Drop the table if it exists
+DROP TABLE IF EXISTS batch_test;
+
 -- Create sample table
 CREATE TABLE batch_test (id int AUTO_INCREMENT PRIMARY key, number float default null, date datetime default null);
 
