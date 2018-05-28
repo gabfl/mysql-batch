@@ -9,7 +9,7 @@ before_install:
   - python setup.py install
 before_script:
   - mysql -e 'CREATE DATABASE my_db;'
-  - mysql my_db < sample_table/schema.sql
+  #- mysql my_db < sample_table/schema.sql
 script:
   - pycodestyle --exclude=venv --ignore=E501 .
   - pytest
