@@ -9,8 +9,8 @@ from src import mysql_batch
 class Test(unittest.TestCase):
 
     host = 'localhost'
-    user = 'travis'
-    database = 'my_db'
+    user = 'db_user'
+    database = 'db_password'
     password = ''
     port = 3306
 
