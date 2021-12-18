@@ -16,13 +16,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
-      - uses: mirromutth/mysql-action@v1.1
-        with:
-          character set server: 'utf8'
-          collation server: 'utf8_general_ci'
-          mysql database: 'my_db'
-          mysql user: 'db_user'
-          mysql password: 'db_password'
+      - name: Set up MySQL
+        run: |
+          sudo systemctl start mysql.service
+          mysql -e 'CREATE DATABASE my_db;' -uroot -proot
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
       - name: Install dependencies
