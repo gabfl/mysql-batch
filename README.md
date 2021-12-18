@@ -1,7 +1,7 @@
 # mysql-batch
 
 [![Pypi](https://img.shields.io/pypi/v/mysql-batch.svg)](https://pypi.org/project/mysql-batch)
-[![Build Status](https://travis-ci.org/gabfl/mysql-batch.svg?branch=main)](https://travis-ci.org/gabfl/mysql-batch)
+[![Build Status](https://github.com/gabfl/mysql-batch/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/gabfl/mysql-batch/actions)
 [![codecov](https://codecov.io/gh/gabfl/mysql-batch/branch/main/graph/badge.svg)](https://codecov.io/gh/gabfl/mysql-batch)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-green.svg)](https://raw.githubusercontent.com/gabfl/mysql-batch/main/LICENSE)
 
