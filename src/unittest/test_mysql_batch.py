@@ -10,8 +10,8 @@ class Test(unittest.TestCase):
 
     host = 'localhost'
     user = 'db_user'
-    database = 'db_password'
-    password = ''
+    database = 'my_db'
+    password = 'db_password'
     port = 3306
 
     # Sample schema
