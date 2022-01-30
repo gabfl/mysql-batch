@@ -1,6 +1,11 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  pull_request:
+    types: [assigned, opened, synchronize, reopened]
+  push:
+    branches:
+      - main
 
 jobs:
   build:
