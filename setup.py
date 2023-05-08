@@ -1,16 +1,12 @@
 from setuptools import setup
 
-try:
-    import pypandoc
-    long_description = pypandoc.convert_file('README.md', 'rst')
-except(IOError, ImportError):
-    long_description = open('README.md').read()
+import pypandoc
 
 setup(
     name='mysql_batch',
     version='1.2.1',
     description='Run large MySQL UPDATE and DELETE queries with small batches to prevent table/row-level locks',
-    long_description=long_description,
+    long_description=pypandoc.convert_file('README.md', 'rst'),
     author='Gabriel Bordeaux',
     author_email='pypi@gab.lc',
     url='https://github.com/gabfl/mysql-batch',
