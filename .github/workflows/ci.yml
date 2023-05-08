@@ -27,6 +27,10 @@ jobs:
           mysql -e 'CREATE DATABASE my_db;' -uroot -proot
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
+      - name: Install deb dependencies
+        run: |
+          sudo apt update
+          sudo apt install pandoc
       - name: Install dependencies
         run: |
           pip install -U pip
