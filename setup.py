@@ -4,7 +4,7 @@ import pypandoc
 
 setup(
     name='mysql_batch',
-    version='1.2.1',
+    version='1.2.2',
     description='Run large MySQL UPDATE and DELETE queries with small batches to prevent table/row-level locks',
     long_description=pypandoc.convert_file('README.md', 'rst'),
     author='Gabriel Bordeaux',
@@ -14,7 +14,7 @@ setup(
     packages=['mysql_batch'],
     package_dir={'mysql_batch': 'src'},
     install_requires=[  # external dependencies
-        'pymysql==1.0.*'
+        'pymysql==1.1.*'
     ],
     entry_points={
         'console_scripts': [
