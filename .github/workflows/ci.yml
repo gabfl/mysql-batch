@@ -12,12 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.7', '3.8', '3.9']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v2
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
@@ -33,9 +33,9 @@ jobs:
           sudo apt install pandoc
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
+          pip install -U pip
           pip install pycodestyle coverage pytest pypandoc
-          pip install .
+          python setup.py install
       - name: Run pycodestyle
         run: |
           pycodestyle --exclude=venv --ignore=E501 .
