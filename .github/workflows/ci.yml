@@ -30,7 +30,7 @@ jobs:
       - name: Install deb dependencies
         run: |
           sudo apt update
-          sudo apt install pandoc
+          sudo apt install pandoc python3-setuptools
       - name: Install dependencies
         run: |
           pip install -U pip
