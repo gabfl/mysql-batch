@@ -166,3 +166,48 @@ class Test(unittest.TestCase):
                           table='batch_test',
                           where='date IS NULL',
                           no_confirm=True)
+
+    def test_execute_5(self):
+        # Declining the first write should stop gracefully
+        with unittest.mock.patch('builtins.input', return_value='no'):
+            self.assertTrue(mysql_batch.execute(self.host, self.user, self.port, self.password, self.database,
+                                                action='delete',
+                                                table='batch_test',
+                                                where='date IS NULL',
+                                                write_batch_size=15))
+
+        # No rows should have been deleted
+        connection = mysql_batch.connect(
+            self.host, self.user, self.port, self.password, self.database)
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT COUNT(*) AS cnt FROM batch_test')
+            self.assertEqual(cursor.fetchone()['cnt'], 100)
+        connection.close()
+
+    def test_main(self):
+        argv = ['mysql_batch',
+                '--host', self.host,
+                '--user', self.user,
+                '--password', self.password,
+                '--database', self.database,
+                '--table', 'batch_test',
+                '--where', 'number < 2',
+                '--action', 'delete',
+                '--write_batch_size', '20',
+                '--no_confirm']
+        with patch('sys.argv', argv):
+            mysql_batch.main()
+
+        # All rows should have been deleted
+        connection = mysql_batch.connect(
+            self.host, self.user, self.port, self.password, self.database)
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT COUNT(*) AS cnt FROM batch_test')
+            self.assertEqual(cursor.fetchone()['cnt'], 0)
+        connection.close()
+
+    def test_main_2(self):
+        # Missing required arguments should exit
+        with patch('sys.argv', ['mysql_batch']):
+            with patch('sys.stderr'):
+                self.assertRaises(SystemExit, mysql_batch.main)
