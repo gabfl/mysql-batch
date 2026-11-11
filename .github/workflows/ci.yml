@@ -11,42 +11,52 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ['3.7', '3.8', '3.9']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: x64
       - name: Set up MySQL
         run: |
           sudo systemctl start mysql.service
           mysql -e 'CREATE DATABASE my_db;' -uroot -proot
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
-      - name: Install deb dependencies
-        run: |
-          sudo apt update
-          sudo apt install pandoc
       - name: Install dependencies
         run: |
-          pip install -U pip
-          pip install pycodestyle coverage pytest pypandoc
-          python setup.py install
+          python -m pip install -U pip
+          pip install pycodestyle coverage pytest
+          pip install .
       - name: Run pycodestyle
         run: |
-          pycodestyle --exclude=venv --ignore=E501 .
+          pycodestyle --exclude=venv,build --ignore=E501 .
       - name: Run pytest
         run: |
           coverage run --source=. -m pytest
       - name: Generate coverage report
         run: |
           coverage report -m
+          coverage xml
       - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Build sdist and wheel
         run: |
-          curl -Os https://uploader.codecov.io/latest/linux/codecov
-          chmod +x codecov
-          ./codecov -t ${CODECOV_TOKEN}
+          python -m pip install -U pip build twine
+          python -m build
+          twine check dist/*
