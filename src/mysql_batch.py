@@ -145,7 +145,7 @@ def connect(host, user, port, password, database):
                                user=user,
                                port=port,
                                password=password,
-                               db=database,
+                               database=database,
                                charset='utf8mb4',
                                client_flag=pymysql.constants.CLIENT.MULTI_STATEMENTS,
                                cursorclass=pymysql.cursors.DictCursor)
